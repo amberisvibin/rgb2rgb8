@@ -1,5 +1,7 @@
 # rgb2rgb8
 
+![demo gif](https://github.com/amberisvibin/rgb2rgb8/blob/main/demo.gif)
+
 rgb2rgb8 is a program that converts files containing 24 bit RGB hex codes into files containing 8 bit 3-3-2 RGB hex codes (converted to 24 bit for ease of use).
 
 This allows the user to convert 24 bit RGB palettes to 8 bit palettes.
