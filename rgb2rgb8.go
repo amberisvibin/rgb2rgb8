@@ -48,6 +48,17 @@ func init() {
 	)
 }
 
+//converts different size bytes to float64 to compare
+//high and low and return the one thats closer
+func compareChannels(base, high, low byte) byte {
+	absHigh := math.Abs(float64(high - base))
+	absLow := math.Abs(float64(low - base))
+	if absHigh < absLow {
+		return high
+	}
+	return low
+}
+
 func main() {
 	pflag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "%s is a utility that converts RGB24 hex palette files to 8bit 3-3-2 RGB.\n", os.Args[0])
@@ -126,31 +137,16 @@ func main() {
 			//and with 11000000 and add 00111111
 			blue2bitHigh := (blue & 192) + 63
 
+			//combine color channels into bytes again
 			rgb8High := []byte{red3bitHigh, green3bitHigh, blue2bitHigh}
 			rgb8Low := []byte{red3bitLow, green3bitLow, blue2bitLow}
 
-			var redFinal byte
-			var greenFinal byte
-			var blueFinal byte
+			//compare channels to find closer one to original
+			redFinal := compareChannels(red, red3bitHigh, red3bitLow)
+			greenFinal := compareChannels(green, green3bitHigh, green3bitLow)
+			blueFinal := compareChannels(blue, blue2bitHigh, blue2bitLow)
 
-			if math.Abs(float64(red3bitHigh)-float64(red)) < math.Abs(float64(red3bitLow)-float64(red)) {
-				redFinal = red3bitHigh
-			} else {
-				redFinal = red3bitLow
-			}
-
-			if math.Abs(float64(green3bitHigh)-float64(green)) < math.Abs(float64(green3bitLow)-float64(green)) {
-				greenFinal = green3bitHigh
-			} else {
-				greenFinal = green3bitLow
-			}
-
-			if math.Abs(float64(blue2bitHigh)-float64(blue)) < math.Abs(float64(blue2bitLow)-float64(blue)) {
-				blueFinal = blue2bitHigh
-			} else {
-				blueFinal = blue2bitLow
-			}
-
+			//combine final color channels
 			rgb8Final := []byte{redFinal, greenFinal, blueFinal}
 
 			if verbose {
@@ -163,6 +159,7 @@ func main() {
 				fmt.Println("Hex final value:", hex.EncodeToString(rgb8Final))
 			}
 
+			//generate pretty color patterns
 			if colors {
 				fmt.Println("Raw  High Low  Final")
 				color.Background(red, green, blue).Print("     ")
