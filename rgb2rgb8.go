@@ -3,47 +3,59 @@ package main
 import (
 	"bufio"
 	"encoding/hex"
-	"flag"
 	"fmt"
+	"github.com/ogier/pflag"
 	"github.com/wayneashleyberry/truecolor/pkg/color"
 	"math"
 	"os"
 )
 
-var outputFile string
-var verbose bool
-var version bool
-var colors bool
+var (
+	outputFile string
+	verbose    bool
+	version    bool
+	colors     bool
+)
 
 func init() {
-	const (
-		outputDefault  = "out.hex"
-		outputUsage    = "output file"
-		verboseDefault = false
-		verboseUsage   = "verbose output"
-		versionDefault = false
-		versionUsage   = "version info"
-		colorsDefault  = false
-		colorsUsage    = "print colors to terminal (needs 24 bit color support)"
+	pflag.StringVarP(
+		&outputFile,
+		"output",
+		"o",
+		"out.hex",
+		"output file",
 	)
-	flag.StringVar(&outputFile, "output", outputDefault, outputUsage)
-	flag.StringVar(&outputFile, "o", outputDefault, outputUsage+" (shorthand)")
-	flag.BoolVar(&verbose, "verbose", verboseDefault, verboseUsage)
-	flag.BoolVar(&verbose, "v", verboseDefault, verboseUsage+" (shorthand)")
-	flag.BoolVar(&colors, "colors", colorsDefault, colorsUsage)
-	flag.BoolVar(&colors, "c", colorsDefault, colorsUsage)
-	flag.BoolVar(&version, "version", versionDefault, versionUsage)
+	pflag.BoolVarP(
+		&verbose,
+		"verbose",
+		"v",
+		false,
+		"verbose output",
+	)
+
+	pflag.BoolVarP(
+		&colors,
+		"colors",
+		"c",
+		false,
+		"print colors to terminal (needs 24 bit color support)",
+	)
+	pflag.BoolVar(
+		&version,
+		"version",
+		false,
+		"version info",
+	)
 }
 
 func main() {
-	flag.Usage = func() {
-		w := flag.CommandLine.Output()
-		fmt.Fprintf(w, "%s is a utility that converts RGB24 hex palette files to 8bit 3-3-2 RGB.\n", os.Args[0])
-		fmt.Fprintf(w, "Usage:\n")
-		flag.PrintDefaults()
+	pflag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "%s is a utility that converts RGB24 hex palette files to 8bit 3-3-2 RGB.\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage:\n")
+		pflag.PrintDefaults()
 	}
 
-	flag.Parse()
+	pflag.Parse()
 
 	if version {
 		fmt.Println("rgb2rgb8 v0.1")
@@ -52,12 +64,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(flag.Args()) == 0 {
+	if len(pflag.Args()) == 0 {
 		fmt.Println("Error: No file specified.")
 		os.Exit(1)
 	}
 
-	var inputFile = flag.Args()[0]
+	var inputFile = pflag.Args()[0]
 
 	if verbose {
 		fmt.Println("outputFile:", outputFile)
@@ -70,6 +82,8 @@ func main() {
 		fmt.Println("Error: Cannot read input file", err)
 		os.Exit(2)
 	}
+
+	defer input.Close()
 
 	//create output file
 	output, err := os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE, 0644)
